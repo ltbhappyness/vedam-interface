@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package vedam;
+
+option java_multiple_files = true;
+option java_package = "org.ltbh.vedam";
+option go_package = "github.com/ltbhappyness/vedam-interface/vedam";
+
+import "vedam/types.proto";
+
+// System is the first API class. Create starts a node instance.
+// Delete tears it down. Other classes then become useful; several have
+// no Create of their own because System create already made their objects.
+//
+// Applications that can load C libraries call Create in their own process
+// (the app is the node). vedamd does the same when there is no UI.
+// A web page attaches to an instance that already exists and does not call
+// Create.
+
+enum NodeClass {
+  NODE_CLASS_UNSPECIFIED = 0;
+  NODE_CLASS_A = 1;  // Archivist: pins allowed ciphertext.
+  NODE_CLASS_B = 2;  // Full validator.
+  NODE_CLASS_C = 3;  // Light operator: typical phone or laptop.
+  NODE_CLASS_D = 4;  // Small gateway.
+  NODE_CLASS_E = 5;  // Thin web client.
+}
+
+message BindEndpoint {
+  // Transport plugin identifier, such as "inproc", "mq", "shm", "grpc",
+  // "libp2p". Not a filesystem path.
+  string transport_id = 1;
+  string address = 2;
+}
+
+message SystemCreateRequest {
+  string defconfig_path = 1;
+  NodeClass node_class = 2;
+  string data_directory = 3;
+  repeated BindEndpoint binds = 4;
+  // Quiet-hours default on. Encryption default on. Compute swarm off.
+  // Sharing is not enabled by Create.
+}
+
+message SystemCreateResponse {
+  Status status = 1;
+  ObjectKey system_key = 2;
+}
+
+message SystemReadRequest {
+  ObjectKey system_key = 1;
+}
+
+message SystemReadResponse {
+  Status status = 1;
+  NodeClass node_class = 2;
+  string health = 3;
+  repeated string loaded_plugin_id = 4;
+  repeated BindEndpoint binds = 5;
+  bool quiet_hours = 6;
+  bool upgrade_consent_required = 7;
+  repeated Attr attrs = 8;
+}
+
+message SystemUpdateRequest {
+  ObjectKey system_key = 1;
+  optional bool quiet_hours = 2;
+  optional bool upgrade_consent_required = 3;
+  repeated BindEndpoint binds = 4;
+  // Optional plugins to load or unload.
+  //
+  // Each string is a registered plugin identifier (for example "overlay"),
+  // never a filesystem path, never "..", never a slash. The node maps the
+  // identifier to a shared object in its own plugin directory and will
+  // refuse anything else with STATUS_PLUGIN_REFUSED.
+  //
+  // Only the process that called Create, or a caller holding a grant from
+  // the account owner, may load plugins. An attached web page must not.
+  repeated string load_plugin_id = 10;
+  repeated string unload_plugin_id = 11;
+  repeated Attr attrs = 15;
+}
+
+message SystemUpdateResponse {
+  Status status = 1;
+  repeated string loaded_plugin_id = 2;
+}
+
+message SystemDeleteRequest {
+  ObjectKey system_key = 1;
+}
+
+message SystemDeleteResponse {
+  Status status = 1;
+}
+
+message SystemNotifyRequest {
+  ObjectKey system_key = 1;
+}
+
+service System {
+  rpc Create(SystemCreateRequest) returns (SystemCreateResponse);
+  rpc Read(SystemReadRequest) returns (SystemReadResponse);
+  rpc Update(SystemUpdateRequest) returns (SystemUpdateResponse);
+  rpc Delete(SystemDeleteRequest) returns (SystemDeleteResponse);
+  rpc Notify(SystemNotifyRequest) returns (stream Event);
+}

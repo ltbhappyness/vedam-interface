@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package vedam;
+
+option java_multiple_files = true;
+option java_package = "org.ltbh.vedam";
+option go_package = "github.com/ltbhappyness/vedam-interface/vedam";
+
+// Common types for every Vedam API class.
+//
+// Every object is addressed by a key (class plus identifier bytes).
+// Attributes are named fields on that key. Errors are typed codes, not
+// a pile of operating-system errno values.
+
+// Wire version for a transaction or notify envelope. Validators advertise
+// a compatible window; overlap is an engineering concern, not a field here.
+message Version {
+  uint32 major = 1;
+  uint32 minor = 2;
+}
+
+// Address of one object. class_id is a stable name such as "system" or
+// "event". id is class-defined; for System it is the instance handle.
+message ObjectKey {
+  string class_id = 1;
+  bytes id = 2;
+}
+
+// A single named attribute. Value encoding is defined by the class schema
+// (protobuf message bytes, or a small UTF-8 string for simple fields).
+message Attr {
+  string name = 1;
+  bytes value = 2;
+}
+
+enum StatusCode {
+  STATUS_CODE_UNSPECIFIED = 0;
+  STATUS_OK = 1;
+  STATUS_NOT_FOUND = 2;
+  STATUS_EXISTS = 3;
+  // Create was called on a class that has no Create in the public header.
+  STATUS_UNIMPLEMENTED_CREATE = 4;
+  STATUS_FAILED_PRECONDITION = 5;
+  STATUS_CAPABILITY_DENIED = 6;
+  STATUS_OFFLINE = 7;
+  STATUS_THERMAL_SHED = 8;
+  STATUS_INVALID_ARGUMENT = 9;
+  // Plugin identifier was a path, contained "..", or was not in the
+  // node's registry. Never treated as a filename.
+  STATUS_PLUGIN_REFUSED = 10;
+}
+
+message Status {
+  StatusCode code = 1;
+  string message = 2;
+}
+
+// Envelope for Notify streams and for the Event class (the log).
+// Severity is not a ranking. Audience is who may see this event.
+message Event {
+  ObjectKey key = 1;
+  string producer_class = 2;
+  int64 unix_time_msec = 3;
+  bytes correlation = 4;
+  EventSeverity severity = 5;
+  string component = 6;
+  string audience = 7;
+  repeated Attr attrs = 8;
+}
+
+enum EventSeverity {
+  EVENT_SEVERITY_UNSPECIFIED = 0;
+  EVENT_SEVERITY_DEBUG = 1;
+  EVENT_SEVERITY_INFO = 2;
+  EVENT_SEVERITY_WARN = 3;
+  EVENT_SEVERITY_ERROR = 4;
+  EVENT_SEVERITY_FATAL = 5;
+}
+
+// Four verbs plus Notify. A class that is implied after System create
+// simply does not expose Create in its public header; the wire may still
+// return STATUS_UNIMPLEMENTED_CREATE.
+enum Verb {
+  VERB_UNSPECIFIED = 0;
+  VERB_CREATE = 1;
+  VERB_READ = 2;
+  VERB_UPDATE = 3;
+  VERB_DELETE = 4;
+  VERB_NOTIFY = 5;
+}

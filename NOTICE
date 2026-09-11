@@ -1,0 +1,10 @@
+Vedam interface messages
+Copyright 2026 ltbh.org
+
+These files are the public application contract for Vedam. An application
+may compile them and speak them to a Vedam node.
+
+A Vedam-compatible node implements the contract as specified, including
+defaults that protect subjects (encryption on, grant root in the account
+owner, no ranking landlord, no fee required to exist). A fork that keeps
+the names and drops those parts is not Vedam.
