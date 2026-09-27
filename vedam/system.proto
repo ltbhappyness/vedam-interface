@@ -1,3 +1,8 @@
+// Copyright (C) 2026 LTBH Vedam project
+// SPDX-License-Identifier: AGPL-3.0-only
+// A changed copy of Vedam is not called Vedam.
+// An application that only calls Vedam keeps its own license. See LICENSE.
+// THIS IS GENERATED CODE AND DO NOT EDIT
 syntax = "proto3";
 
 package vedam;
@@ -8,100 +13,78 @@ option go_package = "github.com/ltbhappyness/vedam-interface/vedam";
 
 import "vedam/types.proto";
 
-// System is the first API class. Create starts a node instance.
-// Delete tears it down. Other classes then become useful; several have
-// no Create of their own because System create already made their objects.
+// Enums below belong to this vertical. Shared call types stay in types.proto.
+// System is one vertical.
+// A call is Message, from vedam/types.proto. The request and the response are
+// that same message.
+// Leave key empty. This vertical has one object on the node.
+// Put each attribute id in Attr.id, using the attribute enum in this file. A
+// repeated id keeps the last entry.
+// On Get, leave Attr.value empty. The response writes the value and
+// Attr.status.
+// Every id is visited. Message.status is success only when every Attr.status
+// succeeded. Otherwise it is the first failure.
 //
-// Applications that can load C libraries call Create in their own process
-// (the app is the node). vedamd does the same when there is no UI.
-// A web page attaches to an instance that already exists and does not call
-// Create.
+// Get fills the values for the ids in the request.
+// Subscribe registers a watch for those ids and returns one Message. It does
+// not stream.
+// Notify is the stream of later changes for a watch registered by Subscribe.
+// Only an id marked for subscribe is accepted.
+// Unsubscribe stops watches for those ids. An empty attribute list stops every
+// watch for this caller.
+//
+// The attribute enum below is the set of ids. A value does not change meaning,
+// and it is not reused for a different attribute.
 
-enum NodeClass {
-  NODE_CLASS_UNSPECIFIED = 0;
-  NODE_CLASS_A = 1;  // Archivist: pins allowed ciphertext.
-  NODE_CLASS_B = 2;  // Full validator.
-  NODE_CLASS_C = 3;  // Light operator: typical phone or laptop.
-  NODE_CLASS_D = 4;  // Small gateway.
-  NODE_CLASS_E = 5;  // Thin web client.
+enum SystemNodeClass {
+  SYSTEM_NODE_CLASS_UNSPECIFIED = 0;  // No role has been chosen.
+  SYSTEM_NODE_CLASS_A = 1;  // Archive. Keeps a full copy of agreed history.
+  SYSTEM_NODE_CLASS_B = 2;  // Full check of agreed history.
+  SYSTEM_NODE_CLASS_C = 3;  // Light operator. Default for this process.
+  SYSTEM_NODE_CLASS_D = 4;  // Small gateway.
+  SYSTEM_NODE_CLASS_E = 5;  // Thin client.
 }
 
-message BindEndpoint {
-  // Transport plugin identifier, such as "inproc", "mq", "shm", "grpc",
-  // "libp2p". Not a filesystem path.
-  string transport_id = 1;
-  string address = 2;
+enum SystemState {
+  SYSTEM_STATE_UNSPECIFIED = 0;  // State has not been set.
+  SYSTEM_STATE_STARTING = 1;  // Create has started. Get is not ready.
+  SYSTEM_STATE_READY = 2;  // Transports are up. Get and subscribe are allowed.
+  SYSTEM_STATE_DEGRADED = 3;  // The process is up with a reduced set of transports.
+  SYSTEM_STATE_DRAINING = 4;  // The process is finishing work and will stop.
+  SYSTEM_STATE_DEAD = 5;  // The process has stopped. Get returns uninitialized.
 }
 
-message SystemCreateRequest {
-  string defconfig_path = 1;
-  NodeClass node_class = 2;
-  string data_directory = 3;
-  repeated BindEndpoint binds = 4;
-  // Quiet-hours default on. Encryption default on. Compute swarm off.
-  // Sharing is not enabled by Create.
-}
-
-message SystemCreateResponse {
-  Status status = 1;
-  ObjectKey system_key = 2;
-}
-
-message SystemReadRequest {
-  ObjectKey system_key = 1;
-}
-
-message SystemReadResponse {
-  Status status = 1;
-  NodeClass node_class = 2;
-  string health = 3;
-  repeated string loaded_plugin_id = 4;
-  repeated BindEndpoint binds = 5;
-  bool quiet_hours = 6;
-  bool upgrade_consent_required = 7;
-  repeated Attr attrs = 8;
-}
-
-message SystemUpdateRequest {
-  ObjectKey system_key = 1;
-  optional bool quiet_hours = 2;
-  optional bool upgrade_consent_required = 3;
-  repeated BindEndpoint binds = 4;
-  // Optional plugins to load or unload.
-  //
-  // Each string is a registered plugin identifier (for example "overlay"),
-  // never a filesystem path, never "..", never a slash. The node maps the
-  // identifier to a shared object in its own plugin directory and will
-  // refuse anything else with STATUS_PLUGIN_REFUSED.
-  //
-  // Only the process that called Create, or a caller holding a grant from
-  // the account owner, may load plugins. An attached web page must not.
-  repeated string load_plugin_id = 10;
-  repeated string unload_plugin_id = 11;
-  repeated Attr attrs = 15;
-}
-
-message SystemUpdateResponse {
-  Status status = 1;
-  repeated string loaded_plugin_id = 2;
-}
-
-message SystemDeleteRequest {
-  ObjectKey system_key = 1;
-}
-
-message SystemDeleteResponse {
-  Status status = 1;
-}
-
-message SystemNotifyRequest {
-  ObjectKey system_key = 1;
+enum SystemAttr {
+  // No attribute is selected.
+  SYSTEM_ATTR_UNSPECIFIED = 0;
+  // Role of this process. A is archive, B is full validator, C is a light
+  // operator, D is a small gateway, E is a thin web client. The response writes
+  // Attr.value.s32. The number is one of SystemNodeClass. Do not send a new
+  // value.
+  SYSTEM_ATTR_NODE_CLASS = 1;
+  // Agreed message version for this node. This era always reports major 0 and
+  // minor 1. The response writes Attr.value.version. Do not send a new value.
+  // Subscribe and Unsubscribe may name this id.
+  SYSTEM_ATTR_PROTOCOL_VERSION = 2;
+  // Whether the process is starting, ready, degraded, draining, or dead. The
+  // response writes Attr.value.blob. Treat those bytes as opaque on this call.
+  // Do not send a new value. Subscribe and Unsubscribe may name this id.
+  SYSTEM_ATTR_SYSTEM_STATE = 3;
+  // Commit of the running build, for a person to read. The response writes
+  // Attr.value.text. Do not send a new value.
+  SYSTEM_ATTR_RELEASE_COMMIT = 4;
 }
 
 service System {
-  rpc Create(SystemCreateRequest) returns (SystemCreateResponse);
-  rpc Read(SystemReadRequest) returns (SystemReadResponse);
-  rpc Update(SystemUpdateRequest) returns (SystemUpdateResponse);
-  rpc Delete(SystemDeleteRequest) returns (SystemDeleteResponse);
-  rpc Notify(SystemNotifyRequest) returns (stream Event);
+  option (vertical_uuid) = "\xc2\xb9\x15\x80\x60\x92\x5c\x64\xbd\x0c\xea\x7f\x37\x7b\x56\xc1";
+
+  // Get fills Attr.value for each Attr.id in the request.
+  rpc Get(Message) returns (Message);
+  // Subscribe registers a watch for the ids in the request and returns one Message.
+  rpc Subscribe(Message) returns (Message);
+  // Notify is the stream of later changes for a watch registered by Subscribe.
+  rpc Notify(Message) returns (stream Message);
+  // Unsubscribe stops watches for the ids in the request. An empty attrs list
+  // stops every watch for this caller.
+  rpc Unsubscribe(Message) returns (Message);
 }

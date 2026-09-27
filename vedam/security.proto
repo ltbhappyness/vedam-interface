@@ -1,0 +1,61 @@
+// Copyright (C) 2026 LTBH Vedam project
+// SPDX-License-Identifier: AGPL-3.0-only
+// A changed copy of Vedam is not called Vedam.
+// An application that only calls Vedam keeps its own license. See LICENSE.
+// THIS IS GENERATED CODE AND DO NOT EDIT
+syntax = "proto3";
+
+package vedam;
+
+option java_multiple_files = true;
+option java_package = "org.ltbh.vedam";
+option go_package = "github.com/ltbhappyness/vedam-interface/vedam";
+
+import "vedam/types.proto";
+
+// Security is one vertical.
+// A call is Message, from vedam/types.proto. The request and the response are
+// that same message.
+// Leave key empty. This vertical has one object on the node.
+// Put each attribute id in Attr.id, using the attribute enum in this file. A
+// repeated id keeps the last entry.
+// On Get, leave Attr.value empty. The response writes the value and
+// Attr.status.
+// Every id is visited. Message.status is success only when every Attr.status
+// succeeded. Otherwise it is the first failure.
+//
+// Get fills the values for the ids in the request.
+// Subscribe registers a watch for those ids and returns one Message. It does
+// not stream.
+// Notify is the stream of later changes for a watch registered by Subscribe.
+// Only an id marked for subscribe is accepted.
+// Unsubscribe stops watches for those ids. An empty attribute list stops every
+// watch for this caller.
+//
+// The attribute enum below is the set of ids. A value does not change meaning,
+// and it is not reused for a different attribute.
+
+enum SecurityAttr {
+  // No attribute is selected.
+  SECURITY_ATTR_UNSPECIFIED = 0;
+  // Active security profile for this process. The response writes
+  // Attr.value.s32. Do not send a new value.
+  SECURITY_ATTR_PROFILE = 1;
+  // State of the security singleton. The response writes Attr.value.s32. Do not
+  // send a new value. Subscribe and Unsubscribe may name this id.
+  SECURITY_ATTR_STATE = 2;
+}
+
+service Security {
+  option (vertical_uuid) = "\x3d\x8d\x56\x23\x8c\xa8\x58\x5f\xa4\x34\x66\x4c\x1d\xf3\x8f\xfa";
+
+  // Get fills Attr.value for each Attr.id in the request.
+  rpc Get(Message) returns (Message);
+  // Subscribe registers a watch for the ids in the request and returns one Message.
+  rpc Subscribe(Message) returns (Message);
+  // Notify is the stream of later changes for a watch registered by Subscribe.
+  rpc Notify(Message) returns (stream Message);
+  // Unsubscribe stops watches for the ids in the request. An empty attrs list
+  // stops every watch for this caller.
+  rpc Unsubscribe(Message) returns (Message);
+}

@@ -1,3 +1,8 @@
+// Copyright (C) 2026 LTBH Vedam project
+// SPDX-License-Identifier: AGPL-3.0-only
+// A changed copy of Vedam is not called Vedam.
+// An application that only calls Vedam keeps its own license. See LICENSE.
+// THIS IS GENERATED CODE AND DO NOT EDIT
 syntax = "proto3";
 
 package vedam;
@@ -6,85 +11,85 @@ option java_multiple_files = true;
 option java_package = "org.ltbh.vedam";
 option go_package = "github.com/ltbhappyness/vedam-interface/vedam";
 
-// Common types for every Vedam API class.
-//
-// Every object is addressed by a key (class plus identifier bytes).
-// Attributes are named fields on that key. Errors are typed codes, not
-// a pile of operating-system errno values.
+import "google/protobuf/descriptor.proto";
 
-// Wire version for a transaction or notify envelope. Validators advertise
-// a compatible window; overlap is an engineering concern, not a field here.
+extend google.protobuf.FileOptions {
+  bytes namespace_uuid = 50001;
+}
+
+extend google.protobuf.ServiceOptions {
+  bytes vertical_uuid = 50000;
+}
+
+option (namespace_uuid) = "\x04\xd4\xb1\xcf\x54\xb6\x53\xb2\x82\x81\x5a\xf9\xb0\x4a\x66\x66";
+
 message Version {
   uint32 major = 1;
   uint32 minor = 2;
 }
 
-// Address of one object. class_id is a stable name such as "system" or
-// "event". id is class-defined; for System it is the instance handle.
-message ObjectKey {
-  string class_id = 1;
-  bytes id = 2;
-}
-
-// A single named attribute. Value encoding is defined by the class schema
-// (protobuf message bytes, or a small UTF-8 string for simple fields).
-message Attr {
-  string name = 1;
-  bytes value = 2;
-}
-
 enum StatusCode {
   STATUS_CODE_UNSPECIFIED = 0;
   STATUS_OK = 1;
-  STATUS_NOT_FOUND = 2;
-  STATUS_EXISTS = 3;
-  // Create was called on a class that has no Create in the public header.
-  STATUS_UNIMPLEMENTED_CREATE = 4;
-  STATUS_FAILED_PRECONDITION = 5;
-  STATUS_CAPABILITY_DENIED = 6;
-  STATUS_OFFLINE = 7;
-  STATUS_THERMAL_SHED = 8;
-  STATUS_INVALID_ARGUMENT = 9;
-  // Plugin identifier was a path, contained "..", or was not in the
-  // node's registry. Never treated as a filename.
-  STATUS_PLUGIN_REFUSED = 10;
+  STATUS_FAILURE = 2;
+  STATUS_NOT_SUPPORTED = 3;
+  STATUS_NO_MEMORY = 4;
+  STATUS_INVALID_PARAMETER = 5;
+  STATUS_ITEM_ALREADY_EXISTS = 6;
+  STATUS_ITEM_NOT_FOUND = 7;
+  STATUS_BUFFER_OVERFLOW = 8;
+  STATUS_MANDATORY_ATTR_MISSING = 9;
+  STATUS_UNINITIALIZED = 10;
+  STATUS_NOT_IMPLEMENTED = 11;
+  STATUS_FAILED_PRECONDITION = 12;
+  STATUS_CAPABILITY_DENIED = 13;
+  STATUS_OFFLINE = 14;
+  STATUS_THERMAL_SHED = 15;
+  STATUS_OBJECT_IN_USE = 16;
+  STATUS_INVALID_ATTR_VALUE = 17;
+  STATUS_ATTR_NOT_IMPLEMENTED = 18;
+  STATUS_UNKNOWN_ATTRIBUTE = 19;
+  STATUS_ATTR_NOT_SUPPORTED = 20;
+  STATUS_INVALID_ATTR_ID = 21;
 }
 
 message Status {
   StatusCode code = 1;
   string message = 2;
+  sint32 vedam_status = 3;
 }
 
-// Envelope for Notify streams and for the Event class (the log).
-// Severity is not a ranking. Audience is who may see this event.
-message Event {
-  ObjectKey key = 1;
-  string producer_class = 2;
-  int64 unix_time_msec = 3;
-  bytes correlation = 4;
-  EventSeverity severity = 5;
-  string component = 6;
-  string audience = 7;
-  repeated Attr attrs = 8;
+message AttrValue {
+  oneof kind {
+    bool booldata = 1;
+    int32 s32 = 2;
+    uint32 u32 = 3;
+    uint64 u64 = 4;
+    Version version = 5;
+    bytes text = 6;
+    bytes blob = 7;
+  }
 }
 
-enum EventSeverity {
-  EVENT_SEVERITY_UNSPECIFIED = 0;
-  EVENT_SEVERITY_DEBUG = 1;
-  EVENT_SEVERITY_INFO = 2;
-  EVENT_SEVERITY_WARN = 3;
-  EVENT_SEVERITY_ERROR = 4;
-  EVENT_SEVERITY_FATAL = 5;
+message Attr {
+  uint32 id = 1;
+  AttrValue value = 2;
+  Status status = 3;
 }
 
-// Four verbs plus Notify. A class that is implied after System create
-// simply does not expose Create in its public header; the wire may still
-// return STATUS_UNIMPLEMENTED_CREATE.
-enum Verb {
-  VERB_UNSPECIFIED = 0;
-  VERB_CREATE = 1;
-  VERB_READ = 2;
-  VERB_UPDATE = 3;
-  VERB_DELETE = 4;
-  VERB_NOTIFY = 5;
+/**
+ * One call. The request and the response are this message.
+ *
+ * key is the object key. Leave it empty when the vertical has one object.
+ * attrs is the attribute list. Set Attr.id to an attribute enum from that vertical.
+ * A repeated id keeps the last entry.
+ * On a get, leave Attr.value empty. The response fills it.
+ * Attr.status is that attribute's result. Every attribute is visited.
+ * status is the overall result: success only when every Attr.status
+ * succeeded, otherwise the first failure.
+ */
+message Message {
+  bytes key = 1;
+  repeated Attr attrs = 2;
+  Status status = 3;
 }

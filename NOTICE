@@ -1,10 +1,11 @@
 Vedam interface messages
-Copyright 2026 ltbh.org
+Copyright (C) 2026 LTBH Vedam project
 
-These files are the public application contract for Vedam. An application
-may compile them and speak them to a Vedam node.
+These files are the published messages for Vedam. The license is the GNU
+Affero General Public License, version 3, with the additional terms in
+LICENSE. An application may compile them and speak them. A changed copy
+is not called Vedam.
 
 A Vedam-compatible node implements the contract as specified, including
 defaults that protect subjects (encryption on, grant root in the account
-owner, no ranking landlord, no fee required to exist). A fork that keeps
-the names and drops those parts is not Vedam.
+owner, no ranking landlord, no fee required to exist).
