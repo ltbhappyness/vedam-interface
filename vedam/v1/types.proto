@@ -5,12 +5,13 @@
 // THIS IS GENERATED CODE AND DO NOT EDIT
 syntax = "proto3";
 
-package vedam;
+package vedam.v1;
 
 option java_multiple_files = true;
-option java_package = "org.ltbh.vedam";
-option go_package = "github.com/ltbhappyness/vedam-interface/vedam";
+option java_package = "org.ltbh.vedam.v1";
+option go_package = "github.com/ltbhappyness/vedam-interface/vedam/v1;vedamv1";
 
+import "google/protobuf/any.proto";
 import "google/protobuf/descriptor.proto";
 
 extend google.protobuf.FileOptions {
@@ -19,6 +20,11 @@ extend google.protobuf.FileOptions {
 
 extend google.protobuf.ServiceOptions {
   bytes vertical_uuid = 50000;
+  uint32 vertical_minor = 50003;
+}
+
+extend google.protobuf.EnumValueOptions {
+  AttrRules attr = 50002;
 }
 
 option (namespace_uuid) = "\x04\xd4\xb1\xcf\x54\xb6\x53\xb2\x82\x81\x5a\xf9\xb0\x4a\x66\x66";
@@ -60,6 +66,9 @@ message Status {
 }
 
 message AttrValue {
+  reserved 7;
+  reserved "blob";
+
   oneof kind {
     bool booldata = 1;
     int32 s32 = 2;
@@ -67,8 +76,17 @@ message AttrValue {
     uint64 u64 = 4;
     Version version = 5;
     bytes text = 6;
-    bytes blob = 7;
+    google.protobuf.Any message = 8;
+    ListValue list = 9;
   }
+}
+
+/**
+ * The items of a list attribute, in order. Each item uses the AttrValue field
+ * of the item kind named in that attribute's AttrRules.
+ */
+message ListValue {
+  repeated AttrValue items = 1;
 }
 
 message Attr {
@@ -92,4 +110,24 @@ message Message {
   bytes key = 1;
   repeated Attr attrs = 2;
   Status status = 3;
+}
+
+/**
+ * The rules one attribute follows, attached to each attribute enum value.
+ *
+ * kind is the value shape: BOOL, S32, U32, U64, VERSION, TEXT, STRUCT, LIST.
+ * type is the protobuf type of the value, or of one item for a LIST: an enum or
+ * message in that vertical's file, or a shared protobuf type. When has_range is
+ * true, a written value or item is from min to max. When max_len is not zero, a
+ * written text is at most that many bytes.
+ * flags lists the public flags, each explained on the attribute.
+ */
+message AttrRules {
+  string kind = 1;
+  string type = 2;
+  bool has_range = 3;
+  sint64 min = 4;
+  sint64 max = 5;
+  uint32 max_len = 6;
+  repeated string flags = 7;
 }

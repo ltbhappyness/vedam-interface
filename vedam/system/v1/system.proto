@@ -5,18 +5,17 @@
 // THIS IS GENERATED CODE AND DO NOT EDIT
 syntax = "proto3";
 
-package vedam;
+package vedam.system.v1;
 
 option java_multiple_files = true;
-option java_package = "org.ltbh.vedam";
-option go_package = "github.com/ltbhappyness/vedam-interface/vedam";
+option java_package = "org.ltbh.vedam.system.v1";
+option go_package = "github.com/ltbhappyness/vedam-interface/vedam/system/v1;systemv1";
 
-import "vedam/types.proto";
+import "vedam/v1/types.proto";
 
-// Enums below belong to this vertical. Shared call types stay in types.proto.
 // System is one vertical.
-// A call is Message, from vedam/types.proto. The request and the response are
-// that same message.
+// A call is vedam.v1.Message. The request and the response are that same
+// message.
 // Leave key empty. This vertical has one object on the node.
 // Put each attribute id in Attr.id, using the attribute enum in this file. A
 // repeated id keeps the last entry.
@@ -25,16 +24,9 @@ import "vedam/types.proto";
 // Every id is visited. Message.status is success only when every Attr.status
 // succeeded. Otherwise it is the first failure.
 //
-// Get fills the values for the ids in the request.
-// Subscribe registers a watch for those ids and returns one Message. It does
-// not stream.
-// Notify is the stream of later changes for a watch registered by Subscribe.
-// Only an id marked for subscribe is accepted.
-// Unsubscribe stops watches for those ids. An empty attribute list stops every
-// watch for this caller.
-//
 // The attribute enum below is the set of ids. A value does not change meaning,
-// and it is not reused for a different attribute.
+// and it is not reused for a different attribute. The option on each value
+// states its kind, type, and limits.
 
 enum SystemNodeClass {
   SYSTEM_NODE_CLASS_UNSPECIFIED = 0;  // No role has been chosen.
@@ -45,13 +37,17 @@ enum SystemNodeClass {
   SYSTEM_NODE_CLASS_E = 5;  // Thin client.
 }
 
-enum SystemState {
+enum SystemStateKind {
   SYSTEM_STATE_UNSPECIFIED = 0;  // State has not been set.
   SYSTEM_STATE_STARTING = 1;  // Create has started. Get is not ready.
   SYSTEM_STATE_READY = 2;  // Transports are up. Get and subscribe are allowed.
   SYSTEM_STATE_DEGRADED = 3;  // The process is up with a reduced set of transports.
   SYSTEM_STATE_DRAINING = 4;  // The process is finishing work and will stop.
   SYSTEM_STATE_DEAD = 5;  // The process has stopped. Get returns uninitialized.
+}
+
+message SystemState {
+  SystemStateKind operational = 1;  // Where the process is in its life.
 }
 
 enum SystemAttr {
@@ -61,30 +57,53 @@ enum SystemAttr {
   // operator, D is a small gateway, E is a thin web client. The response writes
   // Attr.value.s32. The number is one of SystemNodeClass. Do not send a new
   // value.
-  SYSTEM_ATTR_NODE_CLASS = 1;
+  SYSTEM_ATTR_NODE_CLASS = 1 [(vedam.v1.attr) = {
+    kind: "S32"
+    type: "SystemNodeClass"
+    flags: "READ_ONLY"
+  }];
   // Agreed message version for this node. This era always reports major 0 and
   // minor 1. The response writes Attr.value.version. Do not send a new value.
   // Subscribe and Unsubscribe may name this id.
-  SYSTEM_ATTR_PROTOCOL_VERSION = 2;
+  SYSTEM_ATTR_PROTOCOL_VERSION = 2 [(vedam.v1.attr) = {
+    kind: "VERSION"
+    type: "vedam.v1.Version"
+    flags: "READ_ONLY"
+    flags: "SUBSCRIBABLE"
+  }];
   // Whether the process is starting, ready, degraded, draining, or dead. The
-  // response writes Attr.value.blob. Treat those bytes as opaque on this call.
-  // Do not send a new value. Subscribe and Unsubscribe may name this id.
-  SYSTEM_ATTR_SYSTEM_STATE = 3;
+  // response writes Attr.value.message, a google.protobuf.Any that holds
+  // SystemState. Do not send a new value. Subscribe and Unsubscribe may name
+  // this id.
+  SYSTEM_ATTR_SYSTEM_STATE = 3 [(vedam.v1.attr) = {
+    kind: "STRUCT"
+    type: "SystemState"
+    flags: "READ_ONLY"
+    flags: "SUBSCRIBABLE"
+  }];
   // Commit of the running build, for a person to read. The response writes
   // Attr.value.text. Do not send a new value.
-  SYSTEM_ATTR_RELEASE_COMMIT = 4;
+  SYSTEM_ATTR_RELEASE_COMMIT = 4 [(vedam.v1.attr) = {
+    kind: "TEXT"
+    type: "bytes"
+    flags: "READ_ONLY"
+  }];
 }
 
-service System {
-  option (vertical_uuid) = "\xc2\xb9\x15\x80\x60\x92\x5c\x64\xbd\x0c\xea\x7f\x37\x7b\x56\xc1";
+service SystemService {
+  option (vedam.v1.vertical_uuid) = "\xc2\xb9\x15\x80\x60\x92\x5c\x64\xbd\x0c\xea\x7f\x37\x7b\x56\xc1";
+  option (vedam.v1.vertical_minor) = 0;
 
-  // Get fills Attr.value for each Attr.id in the request.
-  rpc Get(Message) returns (Message);
-  // Subscribe registers a watch for the ids in the request and returns one Message.
-  rpc Subscribe(Message) returns (Message);
-  // Notify is the stream of later changes for a watch registered by Subscribe.
-  rpc Notify(Message) returns (stream Message);
-  // Unsubscribe stops watches for the ids in the request. An empty attrs list
-  // stops every watch for this caller.
-  rpc Unsubscribe(Message) returns (Message);
+  // Fill the values for the attribute ids in the list.
+  rpc Get(vedam.v1.Message) returns (vedam.v1.Message);
+
+  // Register a watch for the attribute ids in the list. This call returns once.
+  rpc Subscribe(vedam.v1.Message) returns (vedam.v1.Message);
+
+  // Stop watches for the same caller and the same attribute id list. An empty
+  // list stops all watches for that caller.
+  rpc Unsubscribe(vedam.v1.Message) returns (vedam.v1.Message);
+
+  // Push changed attributes to current subscribers.
+  rpc Notify(vedam.v1.Message) returns (stream vedam.v1.Message);
 }
