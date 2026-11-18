@@ -5,15 +5,15 @@
 // THIS IS GENERATED CODE AND DO NOT EDIT
 syntax = "proto3";
 
-package vedam.wasm.v1;
+package vedam.contract.v1;
 
 option java_multiple_files = true;
-option java_package = "org.ltbh.vedam.wasm.v1";
-option go_package = "github.com/ltbhappyness/vedam-interface/vedam/wasm/v1;wasmv1";
+option java_package = "org.ltbh.vedam.contract.v1";
+option go_package = "github.com/ltbhappyness/vedam-interface/vedam/contract/v1;contractv1";
 
 import "vedam/v1/types.proto";
 
-// Wasm is one vertical.
+// Contract is one vertical.
 // A call is vedam.v1.Message. The request and the response are that same
 // message.
 // Leave key empty. This vertical has one object on the node.
@@ -28,29 +28,13 @@ import "vedam/v1/types.proto";
 // and it is not reused for a different attribute. The option on each value
 // states its kind, type, and limits.
 
-enum WasmAttr {
+enum ContractAttr {
   // No attribute is selected.
-  WASM_ATTR_UNSPECIFIED = 0;
-  // Configuration state of the WebAssembly engine slot. The response writes
-  // Attr.value.s32. Do not send a new value. Subscribe and Unsubscribe may name
-  // this id.
-  WASM_ATTR_ENGINE_STATE = 1 [(vedam.v1.attr) = {
-    kind: "S32"
-    type: "int32"
-    flags: "READ_ONLY"
-    flags: "SUBSCRIBABLE"
-  }];
-  // Configured worker count for the WebAssembly slot. The response writes
-  // Attr.value.s32. Do not send a new value.
-  WASM_ATTR_WORKERS = 2 [(vedam.v1.attr) = {
-    kind: "S32"
-    type: "int32"
-    flags: "READ_ONLY"
-  }];
+  CONTRACT_ATTR_UNSPECIFIED = 0;
 }
 
-service WasmService {
-  option (vedam.v1.vertical_uuid) = "\x05\x3e\xf9\xba\x73\x54\x58\x91\xad\x47\x7a\x52\x9f\x4c\x1b\x64";
+service ContractService {
+  option (vedam.v1.vertical_uuid) = "\xf8\xc5\xc5\x5f\x54\xb9\x5e\x5b\xad\xea\xd3\x92\xc8\xb4\x8c\xcd";
   option (vedam.v1.vertical_minor) = 0;
 
   // Fill the values for the attribute ids in the list.

@@ -22,7 +22,8 @@ vedam/system/v1/system.proto        Node instance (vedam.system.v1)
 vedam/identity/v1/identity.proto    Identity objects, addressed by key (vedam.identity.v1)
 vedam/storage/v1/storage.proto      Storage objects, addressed by key (vedam.storage.v1)
 vedam/security/v1/security.proto    Security singleton (vedam.security.v1)
-vedam/wasm/v1/wasm.proto            WebAssembly configuration singleton (vedam.wasm.v1)
+vedam/contract/v1/contract.proto    Contract program singleton (vedam.contract.v1)
+vedam/plugin/v1/plugin.proto        Local program singleton (vedam.plugin.v1)
 ```
 
 ## Compile
@@ -33,7 +34,7 @@ Set the include path to the repository root:
 protoc -I. --python_out=/tmp vedam/v1/types.proto \
   vedam/system/v1/system.proto vedam/identity/v1/identity.proto \
   vedam/storage/v1/storage.proto vedam/security/v1/security.proto \
-  vedam/wasm/v1/wasm.proto
+  vedam/contract/v1/contract.proto vedam/plugin/v1/plugin.proto
 ```
 
 ## License
