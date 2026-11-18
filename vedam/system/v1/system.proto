@@ -30,11 +30,11 @@ import "vedam/v1/types.proto";
 
 enum SystemNodeClass {
   SYSTEM_NODE_CLASS_UNSPECIFIED = 0;  // No role has been chosen.
-  SYSTEM_NODE_CLASS_A = 1;  // Archive. Keeps a full copy of agreed history.
-  SYSTEM_NODE_CLASS_B = 2;  // Full check of agreed history.
-  SYSTEM_NODE_CLASS_C = 3;  // Light operator. Default for this process.
-  SYSTEM_NODE_CLASS_D = 4;  // Small gateway.
-  SYSTEM_NODE_CLASS_E = 5;  // Thin client.
+  SYSTEM_NODE_CLASS_A = 1;  // Full host libraries, all ordinary links, the daemon. It is not a different call shape.
+  SYSTEM_NODE_CLASS_B = 2;  // The same host shape as A. It is not a second protocol.
+  SYSTEM_NODE_CLASS_C = 3;  // The default host: queue, TCP, and the local socket, plus the daemon. It does not include the compiler path.
+  SYSTEM_NODE_CLASS_D = 4;  // Host libraries with the byte links off. It does not listen on a queue or a socket.
+  SYSTEM_NODE_CLASS_E = 5;  // A WebAssembly build of the libraries. No daemon, no lock, no byte links. It does not run on the machine that merely hosts the page.
 }
 
 enum SystemStateKind {
@@ -53,10 +53,9 @@ message SystemState {
 enum SystemAttr {
   // No attribute is selected.
   SYSTEM_ATTR_UNSPECIFIED = 0;
-  // Role of this process. A is archive, B is full validator, C is a light
-  // operator, D is a small gateway, E is a thin web client. The response writes
-  // Attr.value.s32. The number is one of SystemNodeClass. Do not send a new
-  // value.
+  // The letter this build was compiled as. Not a runtime job title. The response
+  // writes Attr.value.s32. The number is one of SystemNodeClass. Do not send a
+  // new value.
   SYSTEM_ATTR_NODE_CLASS = 1 [(vedam.v1.attr) = {
     kind: "S32"
     type: "SystemNodeClass"
